@@ -73,6 +73,6 @@ Ve a la sección de **[Releases](../../releases/latest)** a la derecha de esta p
 
 ---
 
-##💡 Sobre el Desarrollo
+## 💡 Sobre el Desarrollo
 Este proyecto es una demostración clara de desarrollo de software orientado a resolver problemas reales mediante la estructuración de datos. Construir AlbumMind requirió traducir reglas de negocio no convencionales (como la distribución física y asimétrica de las hojas de un álbum) a código limpio y bases de datos relacionales.
 El desarrollo de esta herramienta refleja una profunda adaptabilidad para abordar requerimientos complejos y un fuerte compromiso con el crecimiento continuo y el aprendizaje de nuevas arquitecturas dentro de la ingeniería de software.
