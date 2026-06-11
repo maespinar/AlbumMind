@@ -1,0 +1,9 @@
+DB_Models/
+venv/
+dist/
+build/
+__pycache__/
+*.pyc
+albumind.db
+*.spec.bak
+verify_db.py
