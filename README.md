@@ -65,13 +65,13 @@ Para compilar la aplicación y generar el ejecutable autónomo ejecutable en cua
    AlbumMind/dist/main/main.exe
    ```
 
---
+---
 
 ## 📥 Descarga Directa (Para Usuarios)
 Si no eres desarrollador y solo quieres usar la aplicación, no necesitas instalar Python ni descargar el código. 
 Ve a la sección de **[Releases](../../releases/latest)** a la derecha de esta página y descarga el archivo ejecutable (`.exe`) más reciente.
 
---
+---
 
 ##💡 Sobre el Desarrollo
 Este proyecto es una demostración clara de desarrollo de software orientado a resolver problemas reales mediante la estructuración de datos. Construir AlbumMind requirió traducir reglas de negocio no convencionales (como la distribución física y asimétrica de las hojas de un álbum) a código limpio y bases de datos relacionales.
