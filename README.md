@@ -62,7 +62,7 @@ Para compilar la aplicación y generar el ejecutable autónomo ejecutable en cua
    ```
 4. **Una vez finalizado el proceso, se habrán generado las carpetas build/ y dist/. Encontrarás el ejecutable listo para producción dentro de:**
    ``` text
-   AlbumMind/dist/main/main.exe
+   AlbumMind/dist/AlbumMind/AlbumMind.exe
    ```
 
 ---
