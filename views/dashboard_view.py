@@ -359,7 +359,7 @@ class _CountryCard(ctk.CTkFrame):
             badge_text  = f"+{r.repetidas} rep." if r.repetidas > 0 else ""
             badge_tc    = VERDE_OSCURO
         else:
-            badge_color = ("transparent", "transparent")
+            badge_color = "transparent"
             badge_text  = ""
             badge_tc    = TEXTO_SEC
 

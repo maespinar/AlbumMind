@@ -199,15 +199,23 @@ class MainWindow(ctk.CTk):
 
     def _show_view(self, name: str) -> None:
         if name == self._current_view:
+            current = self._views.get(name)
+            if current and hasattr(current, "refresh"):
+                current.refresh()
             return
 
         if self._current_view and self._current_view in self._views:
             self._views[self._current_view].grid_remove()
 
+        nueva_vista = name not in self._views
         if name not in self._views:
             self._views[name] = self._create_view(name)
 
-        self._views[name].grid(row=0, column=0, sticky="nsew")
+        view = self._views[name]
+        if not nueva_vista and hasattr(view, "refresh"):
+            view.refresh()
+
+        view.grid(row=0, column=0, sticky="nsew")
         self._current_view = name
 
         self._update_nav_buttons(name)
@@ -267,6 +275,6 @@ class MainWindow(ctk.CTk):
     def on_collection_changed(self) -> None:
         self.refresh_topbar()
 
-        current = self._views.get(self._current_view)
-        if current and hasattr(current, "refresh"):
-            current.refresh()
+        for view in tuple(self._views.values()):
+            if hasattr(view, "refresh"):
+                view.refresh()

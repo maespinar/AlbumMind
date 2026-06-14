@@ -400,7 +400,7 @@ class _StickerCard(ctk.CTkFrame):
             width=28,
             height=28,
             corner_radius=6,
-            fg_color=DORADO if self._item.pegada else ("transparent", "transparent"),
+            fg_color=DORADO if self._item.pegada else "transparent",
             hover_color=DORADO_HOVER,
             border_width=1 if not self._item.pegada else 0,
             border_color=BORDE,
@@ -478,7 +478,7 @@ class _StickerCard(ctk.CTkFrame):
         self.btn_pegar.configure(
             state="normal" if tiene else "disabled",
             text="✅" if item.pegada else "□",
-            fg_color=DORADO if item.pegada else ("transparent", "transparent"),
+            fg_color=DORADO if item.pegada else "transparent",
             border_width=0 if item.pegada else 1,
             text_color=(
                 ("#1C1C1E", "#1C1C1E") if item.pegada else TEXTO_SEC
