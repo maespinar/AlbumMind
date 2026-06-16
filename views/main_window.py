@@ -21,16 +21,14 @@ class MainWindow(ctk.CTk):
         self.minsize(900, 600)
         ctk.set_appearance_mode("System")       
         ctk.set_default_color_theme("green")    
-        # ── Estado de navegación 
         self._views: dict[str, ctk.CTkFrame] = {}
         self._current_view: str = ""
         self._nav_buttons: dict[str, ctk.CTkButton] = {}
-        # ── Construir layout 
+        self._dirty_views: set[str] = set()
         self._build_layout()
         self._build_topbar()
         self._build_sidebar()
         self._build_content_area()
-        # ── Vista inicial 
         self._show_view("dashboard")
 
     def _build_layout(self) -> None:
@@ -200,8 +198,9 @@ class MainWindow(ctk.CTk):
     def _show_view(self, name: str) -> None:
         if name == self._current_view:
             current = self._views.get(name)
-            if current and hasattr(current, "refresh"):
+            if name in self._dirty_views and current and hasattr(current, "refresh"):
                 current.refresh()
+                self._dirty_views.discard(name)
             return
 
         if self._current_view and self._current_view in self._views:
@@ -212,8 +211,9 @@ class MainWindow(ctk.CTk):
             self._views[name] = self._create_view(name)
 
         view = self._views[name]
-        if not nueva_vista and hasattr(view, "refresh"):
+        if not nueva_vista and name in self._dirty_views and hasattr(view, "refresh"):
             view.refresh()
+            self._dirty_views.discard(name)
 
         view.grid(row=0, column=0, sticky="nsew")
         self._current_view = name
@@ -275,6 +275,6 @@ class MainWindow(ctk.CTk):
     def on_collection_changed(self) -> None:
         self.refresh_topbar()
 
-        for view in tuple(self._views.values()):
-            if hasattr(view, "refresh"):
-                view.refresh()
+        for name, view in self._views.items():
+            if name != self._current_view and hasattr(view, "refresh"):
+                self._dirty_views.add(name)
