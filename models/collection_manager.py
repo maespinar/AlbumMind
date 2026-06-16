@@ -282,18 +282,25 @@ def obtener_resumen_global() -> ResumenColeccion:
         stats = conn.execute("""
             SELECT
                 COUNT(CASE WHEN pegada   = 1               THEN 1 END) AS pegadas,
-                COUNT(CASE WHEN cantidad > 0               THEN 1 END) AS tengo,
+                COUNT(CASE WHEN cantidad > 0               THEN 1 END) AS poseidas,
+                SUM (
+                    CASE
+                        WHEN cantidad > pegada THEN cantidad - pegada
+                        ELSE 0
+                    END
+                ) AS en_mano,
                 SUM (CASE WHEN cantidad > 1 THEN cantidad - 1 ELSE 0 END) AS repetidas
             FROM COLECCION
         """).fetchone()
     pegadas   = stats["pegadas"]   or 0
-    tengo     = stats["tengo"]     or 0
+    poseidas  = stats["poseidas"]  or 0
+    en_mano   = stats["en_mano"]   or 0
     repetidas = stats["repetidas"] or 0
-    faltan    = total - tengo
+    faltan    = total - poseidas
     return ResumenColeccion(
         total_figuritas=total,
         total_pegadas=pegadas,
-        total_tengo=tengo,
+        total_tengo=en_mano,
         total_faltan=faltan,
         total_repetidas=repetidas,
     )

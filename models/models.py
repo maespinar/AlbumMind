@@ -134,10 +134,10 @@ class ItemColeccion:
 # ─────────────────────────────────────────────────────────────
 @dataclass
 class ResumenColeccion:
-    total_figuritas: int = 980
+    total_figuritas: int = 994
     total_pegadas: int = 0
     total_tengo: int = 0
-    total_faltan: int = 980
+    total_faltan: int = 994
     total_repetidas: int = 0
     @property
     def porcentaje(self) -> float:
