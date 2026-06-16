@@ -10,6 +10,7 @@ from models.collection_manager import (
     agregar_figurita,
     quitar_figurita,
     marcar_pegada,
+    marcar_pegadas_bulk,
 )
 from models.models import (
     Figurita,
@@ -148,8 +149,23 @@ class CountryView(ctk.CTkFrame):
         )
         self.combo_pais.grid(row=0, column=1, padx=(0, 16), pady=10, sticky="w")
 
+        self.btn_pegar_disponibles = ctk.CTkButton(
+            bar,
+            text="Pegar disponibles",
+            width=160,
+            height=34,
+            corner_radius=8,
+            fg_color=DORADO,
+            hover_color=DORADO_HOVER,
+            text_color=("#1C1C1E", "#1C1C1E"),
+            font=ctk.CTkFont(size=13, weight="bold"),
+            command=self._pegar_disponibles,
+            state="disabled",
+        )
+        self.btn_pegar_disponibles.grid(row=0, column=2, padx=(0, 16), pady=10, sticky="e")
+
         prog_frame = ctk.CTkFrame(bar, fg_color="transparent")
-        prog_frame.grid(row=0, column=2, padx=(0, 16), pady=10, sticky="e")
+        prog_frame.grid(row=0, column=3, padx=(0, 16), pady=10, sticky="e")
 
         self.lbl_pct_pais = ctk.CTkLabel(
             prog_frame,
@@ -233,6 +249,7 @@ class CountryView(ctk.CTkFrame):
         self.lbl_pais.configure(text=f"{bandera}  {nombre}")
 
         if resumen:
+            disponibles_para_pegar = max(0, resumen.tengo - resumen.pegadas)
             self.lbl_resumen.configure(
                 text=(
                     f"{resumen.pegadas}/{resumen.total} pegadas  ·  "
@@ -243,10 +260,22 @@ class CountryView(ctk.CTkFrame):
             pct = resumen.porcentaje / 100
             self.prog_pais.set(pct)
             self.lbl_pct_pais.configure(text=f"{resumen.porcentaje:.0f}%")
+            self.btn_pegar_disponibles.configure(
+                state="normal" if disponibles_para_pegar > 0 else "disabled",
+                text=(
+                    f"Pegar disponibles ({disponibles_para_pegar})"
+                    if disponibles_para_pegar > 0
+                    else "Pegar disponibles"
+                ),
+            )
         else:
             self.lbl_resumen.configure(text="Sin datos")
             self.prog_pais.set(0)
             self.lbl_pct_pais.configure(text="0%")
+            self.btn_pegar_disponibles.configure(
+                state="disabled",
+                text="Pegar disponibles",
+            )
 
     def _poblar_grid(self, figuritas: list[Figurita], cod_pais: str) -> None:
         for card in self._cards:
@@ -275,6 +304,28 @@ class CountryView(ctk.CTkFrame):
             pass
 
         self.main_window.on_collection_changed()
+
+    def _pegar_disponibles(self) -> None:
+        if not self._cod_pais:
+            return
+
+        items = [
+            (card.num_figura, card.cod_pais)
+            for card in self._cards
+            if card.tiene and not card.pegada
+        ]
+        if not items:
+            return
+
+        marcadas = marcar_pegadas_bulk(items)
+        if marcadas == 0:
+            return
+
+        for card in self._cards:
+            if card.tiene:
+                card.marcar_pegada_local()
+
+        self._on_card_changed()
 
     def _mostrar_error(self, msg: str) -> None:
         ctk.CTkLabel(
@@ -305,6 +356,22 @@ class _StickerCard(ctk.CTkFrame):
         self._on_change = on_change
 
         self._build()
+
+    @property
+    def num_figura(self) -> int:
+        return self._fig.num_figura
+
+    @property
+    def cod_pais(self) -> str:
+        return self._fig.cod_pais
+
+    @property
+    def tiene(self) -> bool:
+        return self._item.cantidad > 0
+
+    @property
+    def pegada(self) -> bool:
+        return self._item.pegada
 
     def _build(self) -> None:
         self.grid_columnconfigure(0, weight=1)
@@ -459,6 +526,12 @@ class _StickerCard(ctk.CTkFrame):
             self._on_change()
         except Exception:
             pass
+
+    def marcar_pegada_local(self) -> None:
+        if not self.tiene:
+            return
+        self._item.pegada = True
+        self._actualizar_ui()
 
     def _actualizar_ui(self) -> None:
         item = self._item
