@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import sys
 from models.collection_manager import obtener_resumen_global
 
 VERDE_OSCURO  = ("#1A4731", "#0F2E20")   
@@ -30,6 +31,7 @@ class MainWindow(ctk.CTk):
         self._build_sidebar()
         self._build_content_area()
         self._show_view("dashboard")
+        self.protocol("WM_DELETE_WINDOW", self.cerrar_aplicacion)
 
     def _build_layout(self) -> None:
         self.grid_columnconfigure(0, weight=0, minsize=self.SIDEBAR_W)
@@ -278,3 +280,8 @@ class MainWindow(ctk.CTk):
         for name, view in self._views.items():
             if name != self._current_view and hasattr(view, "refresh"):
                 self._dirty_views.add(name)
+
+    def cerrar_aplicacion(self):
+        self.quit()
+        self.destroy()
+        sys.exit(0)
