@@ -1,8 +1,26 @@
-import sqlite3
 import os
+import sqlite3
+from pathlib import Path
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH   = os.path.join(_BASE_DIR, "..", "albumind.db")
+
+
+def obtener_ruta_bd() -> str:
+    ruta_personalizada = os.getenv("ALBUMIND_DB_PATH")
+    if ruta_personalizada:
+        return ruta_personalizada
+
+    appdata_local = os.getenv("LOCALAPPDATA")
+    if appdata_local:
+        ruta_carpeta = Path(appdata_local) / "AlbumMind"
+    else:
+        ruta_carpeta = Path.home() / "AppData" / "Local" / "AlbumMind"
+
+    ruta_carpeta.mkdir(parents=True, exist_ok=True)
+    return str(ruta_carpeta / "albumind.db")
+
+
+DB_PATH = obtener_ruta_bd()
 
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)

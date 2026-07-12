@@ -20,9 +20,9 @@
 #      lo que lo hace lento (~5s extra) y falla en algunos
 #      antivirus corporativos. --onedir arranca en <1s.
 #
-#    • La BD albumind.db se crea junto al ejecutable en
-#      dist/AlbumMind/ en el primer arranque. Ahí el usuario
-#      puede hacer backups fácilmente.
+#    * La BD albumind.db se crea en la carpeta local del usuario:
+#      %LOCALAPPDATA%\AlbumMind\. Asi distintas versiones de la app
+#      comparten la misma base de datos.
 #
 #    • Para distribuir, comprime dist/AlbumMind/ completo en
 #      un .zip. El usuario lo descomprime y ejecuta.

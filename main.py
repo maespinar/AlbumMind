@@ -1,20 +1,36 @@
 import os
+import shutil
 import sys
 import sqlite3
+from pathlib import Path
+
+from database.database import obtener_ruta_bd
 
 def resource_path(relative: str) -> str:
     base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base, relative)
 
-def _db_path() -> str:
+def _legacy_db_paths() -> list[Path]:
     if getattr(sys, "frozen", False):
-        return os.path.join(os.path.dirname(sys.executable), "albumind.db")
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "albumind.db")
+        return [Path(sys.executable).resolve().parent / "albumind.db"]
+    return [Path(__file__).resolve().parent / "albumind.db"]
+
+def _migrate_legacy_database(db: str) -> None:
+    target = Path(db)
+    if target.exists():
+        return
+
+    for legacy_db in _legacy_db_paths():
+        if legacy_db.exists() and legacy_db.resolve() != target.resolve():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(legacy_db, target)
+            return
 
 def init_database() -> None:
-    db     = _db_path()
+    db     = obtener_ruta_bd()
     schema = resource_path(os.path.join("database", "schema.sql"))
     seed   = resource_path(os.path.join("database", "seed_data.sql"))
+    _migrate_legacy_database(db)
     conn = sqlite3.connect(db)
     conn.execute("PRAGMA foreign_keys = ON")
     with open(schema, "r", encoding="utf-8") as f:
