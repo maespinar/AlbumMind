@@ -127,7 +127,7 @@ class CountryView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             bar,
-            text="Equipo:",
+            text="Pais/seccion:",
             font=ctk.CTkFont(size=13),
             text_color=TEXTO_SEC,
         ).grid(row=0, column=0, padx=(16, 6), pady=10, sticky="w")

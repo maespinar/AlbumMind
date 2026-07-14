@@ -26,8 +26,13 @@ def obtener_todos_los_paises() -> list[Pais]:
         rows = conn.execute("""
             SELECT codPais, nombre
             FROM PAIS
-            WHERE codPais != 'FWC' AND codPais != 'CCL'
-            ORDER BY nombre
+            ORDER BY
+                CASE
+                    WHEN codPais = 'FWC' THEN 0
+                    WHEN codPais = 'CCL' THEN 2
+                    ELSE 1
+                END,
+                nombre
         """).fetchall()
     return [Pais(cod_pais=r["codPais"], nombre=r["nombre"]) for r in rows]
 
@@ -318,9 +323,15 @@ def obtener_resumen_por_pais() -> list[ResumenPais]:
             FROM PAIS p
             JOIN FIGURITA f ON p.codPais = f.codPais
             LEFT JOIN COLECCION c ON (f.numFigura = c.numFigura AND f.codPais = c.codPais)
-            WHERE p.codPais != 'FWC' AND p.codPais != 'CCL'
             GROUP BY p.codPais, p.nombre
-            ORDER BY pegadas DESC, p.nombre
+            ORDER BY
+                CASE
+                    WHEN p.codPais = 'FWC' THEN 0
+                    WHEN p.codPais = 'CCL' THEN 2
+                    ELSE 1
+                END,
+                pegadas DESC,
+                p.nombre
         """).fetchall()
     resultado = []
     for r in rows:
