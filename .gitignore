@@ -7,3 +7,4 @@ __pycache__/
 albumind.db
 *.spec.bak
 verify_db.py
+INSTRUCTIONS.txt
