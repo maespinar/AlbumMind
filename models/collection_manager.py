@@ -24,15 +24,21 @@ from database.database import get_connection
 def obtener_todos_los_paises() -> list[Pais]:
     with get_connection() as conn:
         rows = conn.execute("""
-            SELECT codPais, nombre
-            FROM PAIS
+            SELECT p.codPais, p.nombre
+            FROM PAIS p
+            LEFT JOIN (
+                SELECT codPais, MIN(numPagina) AS primera_pagina_equipo
+                FROM PEQUIPO
+                GROUP BY codPais
+            ) eq ON eq.codPais = p.codPais
+            LEFT JOIN (
+                SELECT codPais, MIN(numPagina) AS primera_pagina
+                FROM FIGURITA
+                GROUP BY codPais
+            ) fig ON fig.codPais = p.codPais
             ORDER BY
-                CASE
-                    WHEN codPais = 'FWC' THEN 0
-                    WHEN codPais = 'CCL' THEN 2
-                    ELSE 1
-                END,
-                nombre
+                COALESCE(eq.primera_pagina_equipo, fig.primera_pagina, 9999),
+                p.codPais
         """).fetchall()
     return [Pais(cod_pais=r["codPais"], nombre=r["nombre"]) for r in rows]
 

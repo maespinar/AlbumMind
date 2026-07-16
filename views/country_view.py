@@ -46,6 +46,134 @@ VERDE_BTN_HOV = ("#1A5C3A", "#2E8055")
 
 STICKER_COLS = 4
 
+class _MouseWheelComboBox(ctk.CTkComboBox):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._scroll_dropdown: ctk.CTkToplevel | None = None
+        self._scroll_dropdown_frame: ctk.CTkScrollableFrame | None = None
+
+    def _open_dropdown_menu(self) -> None:
+        if self._scroll_dropdown is not None and self._scroll_dropdown.winfo_exists():
+            self._close_scroll_dropdown()
+            return
+
+        values = self.cget("values")
+        if not values:
+            return
+
+        width = max(self.winfo_width(), self.cget("width"))
+        row_height = 32
+        max_visible_rows = 9
+        height = min(len(values), max_visible_rows) * row_height + 8
+        x = self.winfo_rootx()
+        y = self.winfo_rooty() + self.winfo_height() + 3
+
+        dropdown = ctk.CTkToplevel(self)
+        dropdown.overrideredirect(True)
+        dropdown.transient(self.winfo_toplevel())
+        dropdown.geometry(f"{width}x{height}+{x}+{y}")
+        dropdown.grid_rowconfigure(0, weight=1)
+        dropdown.grid_columnconfigure(0, weight=1)
+
+        try:
+            dropdown.attributes("-topmost", True)
+        except Exception:
+            pass
+
+        frame = ctk.CTkScrollableFrame(
+            dropdown,
+            width=width,
+            height=height,
+            corner_radius=8,
+            fg_color=self.cget("dropdown_fg_color"),
+            scrollbar_button_color=VERDE_MEDIO,
+            scrollbar_button_hover_color=DORADO,
+        )
+        frame.grid(row=0, column=0, sticky="nsew")
+        frame.grid_columnconfigure(0, weight=1)
+
+        dropdown_font = self.cget("dropdown_font")
+        for value in values:
+            btn = ctk.CTkButton(
+                frame,
+                text=value,
+                height=30,
+                corner_radius=6,
+                anchor="w",
+                fg_color="transparent",
+                hover_color=self.cget("dropdown_hover_color"),
+                text_color=self.cget("dropdown_text_color"),
+                font=dropdown_font,
+                command=lambda v=value: self._select_scroll_value(v),
+            )
+            btn.grid(row=len(frame.winfo_children()) - 1, column=0, padx=4, pady=1, sticky="ew")
+            self._bind_dropdown_mousewheel(btn)
+
+        self._scroll_dropdown = dropdown
+        self._scroll_dropdown_frame = frame
+        self._bind_dropdown_mousewheel(dropdown)
+        self._bind_dropdown_mousewheel(frame)
+        self._bind_dropdown_mousewheel(frame._parent_canvas)
+
+        dropdown.bind("<Escape>", lambda _event: self._close_scroll_dropdown())
+        dropdown.bind("<FocusOut>", self._schedule_dropdown_close)
+        dropdown.focus_force()
+
+    def _select_scroll_value(self, value: str) -> None:
+        self._close_scroll_dropdown()
+        self._dropdown_callback(value)
+
+    def _schedule_dropdown_close(self, _event=None) -> None:
+        if self._scroll_dropdown is not None and self._scroll_dropdown.winfo_exists():
+            self.after(120, self._close_dropdown_if_focus_left)
+
+    def _close_dropdown_if_focus_left(self) -> None:
+        dropdown = self._scroll_dropdown
+        if dropdown is None or not dropdown.winfo_exists():
+            return
+
+        focused = self.focus_get()
+        if focused is None or not self._is_child_of(focused, dropdown):
+            self._close_scroll_dropdown()
+
+    def _is_child_of(self, widget, parent) -> bool:
+        while widget is not None:
+            if widget == parent:
+                return True
+            widget = getattr(widget, "master", None)
+        return False
+
+    def _bind_dropdown_mousewheel(self, widget) -> None:
+        widget.bind("<MouseWheel>", self._on_dropdown_mousewheel, add="+")
+        widget.bind("<Button-4>", self._on_dropdown_mousewheel, add="+")
+        widget.bind("<Button-5>", self._on_dropdown_mousewheel, add="+")
+
+    def _on_dropdown_mousewheel(self, event):
+        frame = self._scroll_dropdown_frame
+        if frame is None:
+            return "break"
+
+        if getattr(event, "num", None) == 4:
+            units = -3
+        elif getattr(event, "num", None) == 5:
+            units = 3
+        else:
+            units = -int(event.delta / 120) if event.delta else 0
+
+        if units:
+            frame._parent_canvas.yview_scroll(units, "units")
+        return "break"
+
+    def _close_scroll_dropdown(self) -> None:
+        if self._scroll_dropdown is not None and self._scroll_dropdown.winfo_exists():
+            self._scroll_dropdown.destroy()
+        self._scroll_dropdown = None
+        self._scroll_dropdown_frame = None
+
+    def destroy(self) -> None:
+        self._close_scroll_dropdown()
+        super().destroy()
+
 class CountryView(ctk.CTkFrame):
     def __init__(self, parent: ctk.CTkFrame, main_window: "MainWindow") -> None:
         super().__init__(parent, fg_color=BG_MAIN, corner_radius=0)
@@ -134,7 +262,7 @@ class CountryView(ctk.CTkFrame):
         ).grid(row=0, column=0, padx=(16, 6), pady=10, sticky="w")
 
         nombres = [f"{p.cod_pais} — {p.nombre}" for p in self._paises]
-        self.combo_pais = ctk.CTkComboBox(
+        self.combo_pais = _MouseWheelComboBox(
             bar,
             values=nombres if nombres else ["Sin datos"],
             width=240,
