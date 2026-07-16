@@ -11,6 +11,7 @@ from models.collection_manager import (
     quitar_figurita,
     marcar_pegada,
     marcar_pegadas_bulk,
+    marcar_tengo_pais_bulk,
 )
 from models.models import (
     Figurita,
@@ -162,10 +163,25 @@ class CountryView(ctk.CTkFrame):
             command=self._pegar_disponibles,
             state="disabled",
         )
-        self.btn_pegar_disponibles.grid(row=0, column=2, padx=(0, 16), pady=10, sticky="e")
+        self.btn_tengo_todas = ctk.CTkButton(
+            bar,
+            text="Tengo todas",
+            width=140,
+            height=34,
+            corner_radius=8,
+            fg_color=VERDE_BTN,
+            hover_color=VERDE_BTN_HOV,
+            text_color=("#FFFFFF", "#FFFFFF"),
+            font=ctk.CTkFont(size=13, weight="bold"),
+            command=self._toggle_tengo_todas,
+            state="disabled",
+        )
+        self.btn_tengo_todas.grid(row=0, column=2, padx=(0, 8), pady=10, sticky="e")
+
+        self.btn_pegar_disponibles.grid(row=0, column=3, padx=(0, 16), pady=10, sticky="e")
 
         prog_frame = ctk.CTkFrame(bar, fg_color="transparent")
-        prog_frame.grid(row=0, column=3, padx=(0, 16), pady=10, sticky="e")
+        prog_frame.grid(row=0, column=4, padx=(0, 16), pady=10, sticky="e")
 
         self.lbl_pct_pais = ctk.CTkLabel(
             prog_frame,
@@ -250,6 +266,11 @@ class CountryView(ctk.CTkFrame):
 
         if resumen:
             disponibles_para_pegar = max(0, resumen.tengo - resumen.pegadas)
+            tengo_todas_sin_pegar = (
+                resumen.total > 0
+                and resumen.tengo == resumen.total
+                and resumen.pegadas == 0
+            )
             self.lbl_resumen.configure(
                 text=(
                     f"{resumen.pegadas}/{resumen.total} pegadas  ·  "
@@ -268,6 +289,10 @@ class CountryView(ctk.CTkFrame):
                     else "Pegar disponibles"
                 ),
             )
+            self.btn_tengo_todas.configure(
+                state="normal" if resumen.total > 0 else "disabled",
+                text="Quitar todas" if tengo_todas_sin_pegar else "Tengo todas",
+            )
         else:
             self.lbl_resumen.configure(text="Sin datos")
             self.prog_pais.set(0)
@@ -275,6 +300,10 @@ class CountryView(ctk.CTkFrame):
             self.btn_pegar_disponibles.configure(
                 state="disabled",
                 text="Pegar disponibles",
+            )
+            self.btn_tengo_todas.configure(
+                state="disabled",
+                text="Tengo todas",
             )
 
     def _poblar_grid(self, figuritas: list[Figurita], cod_pais: str) -> None:
@@ -326,6 +355,27 @@ class CountryView(ctk.CTkFrame):
                 card.marcar_pegada_local()
 
         self._on_card_changed()
+
+    def _toggle_tengo_todas(self) -> None:
+        if not self._cod_pais:
+            return
+
+        try:
+            resumen = obtener_resumen_pais(self._cod_pais)
+        except Exception:
+            return
+
+        if not resumen:
+            return
+
+        tengo_todas_sin_pegar = (
+            resumen.total > 0
+            and resumen.tengo == resumen.total
+            and resumen.pegadas == 0
+        )
+        marcar_tengo_pais_bulk(self._cod_pais, not tengo_todas_sin_pegar)
+        self._cargar_pais(self._cod_pais)
+        self.main_window.on_collection_changed()
 
     def _mostrar_error(self, msg: str) -> None:
         ctk.CTkLabel(

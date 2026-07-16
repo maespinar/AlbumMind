@@ -398,6 +398,35 @@ def marcar_pegadas_bulk(items: list[tuple[int, str]]) -> int:
             marcadas += cursor.rowcount
     return marcadas
 
+def marcar_tengo_pais_bulk(cod_pais: str, tengo: bool) -> int:
+    if not cod_pais:
+        return 0
+
+    with get_connection() as conn:
+        if tengo:
+            conn.execute("""
+                INSERT OR IGNORE INTO COLECCION (numFigura, codPais, cantidad, pegada)
+                SELECT numFigura, codPais, 0, 0
+                FROM FIGURITA
+                WHERE codPais = ?
+            """, (cod_pais,))
+            cursor = conn.execute("""
+                UPDATE COLECCION
+                SET cantidad = CASE WHEN cantidad > 0 THEN cantidad ELSE 1 END,
+                    pegada = 0
+                WHERE codPais = ?
+                  AND (cantidad = 0 OR pegada <> 0)
+            """, (cod_pais,))
+        else:
+            cursor = conn.execute("""
+                UPDATE COLECCION
+                SET cantidad = 0,
+                    pegada = 0
+                WHERE codPais = ?
+                  AND (cantidad <> 0 OR pegada <> 0)
+            """, (cod_pais,))
+    return cursor.rowcount
+
 def resetear_coleccion() -> None:
     with get_connection() as conn:
         conn.execute("DELETE FROM COLECCION")
