@@ -71,6 +71,9 @@ Para compilar la aplicación y generar el ejecutable autónomo ejecutable en cua
 Si no eres desarrollador y solo quieres usar la aplicación, no necesitas instalar Python ni descargar el código. 
 Ve a la sección de **[Releases](../../releases/latest)** a la derecha de esta página y descarga el archivo ejecutable (`.exe`) más reciente.
 
+> [!WARNING]
+> Windows SmartScreen. Al ser una aplicación de código abierto y desarrollo independiente, es posible que Windows muestre una pantalla azul de advertencia la primera vez que abras el programa. Esto es normal en ejecutables nuevos. Para ingresar, simplemente haz clic en "Más información" y luego en "Ejecutar de todas formas". Si deseas auditar la seguridad del proyecto, todo el código fuente está disponible y estructurado en este mismo repositorio.
+
 ---
 
 ## 💡 Sobre el Desarrollo
