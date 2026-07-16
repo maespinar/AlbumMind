@@ -197,6 +197,7 @@ class CountryView(ctk.CTkFrame):
         self._build_header()
         self._build_control_bar()
         self._build_sticker_grid()
+        self._build_country_nav()
 
     def _build_header(self) -> None:
 
@@ -340,10 +341,53 @@ class CountryView(ctk.CTkFrame):
             scrollbar_button_color=VERDE_MEDIO,
             scrollbar_button_hover_color=DORADO,
         )
-        self.scroll.grid(row=2, column=0, padx=16, pady=12, sticky="nsew")
+        self.scroll.grid(row=2, column=0, padx=16, pady=(12, 8), sticky="nsew")
 
         for c in range(STICKER_COLS):
             self.scroll.grid_columnconfigure(c, weight=1, uniform="sc")
+
+    def _build_country_nav(self) -> None:
+        footer = ctk.CTkFrame(
+            self,
+            fg_color=BG_MAIN,
+            corner_radius=0,
+            height=58,
+        )
+        footer.grid(row=3, column=0, sticky="ew")
+        footer.grid_propagate(False)
+
+        nav_frame = ctk.CTkFrame(footer, fg_color="transparent")
+        nav_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        self.btn_pais_anterior = ctk.CTkButton(
+            nav_frame,
+            text="< Pais anterior",
+            width=150,
+            height=36,
+            corner_radius=8,
+            fg_color=VERDE_BTN,
+            hover_color=VERDE_BTN_HOV,
+            text_color=("#FFFFFF", "#FFFFFF"),
+            font=ctk.CTkFont(size=13, weight="bold"),
+            command=lambda: self._navegar_pais(-1),
+            state="disabled",
+        )
+        self.btn_pais_anterior.grid(row=0, column=0, padx=(0, 8))
+
+        self.btn_pais_siguiente = ctk.CTkButton(
+            nav_frame,
+            text="Pais siguiente >",
+            width=150,
+            height=36,
+            corner_radius=8,
+            fg_color=VERDE_BTN,
+            hover_color=VERDE_BTN_HOV,
+            text_color=("#FFFFFF", "#FFFFFF"),
+            font=ctk.CTkFont(size=13, weight="bold"),
+            command=lambda: self._navegar_pais(1),
+            state="disabled",
+        )
+        self.btn_pais_siguiente.grid(row=0, column=1, padx=(8, 0))
 
     def set_country(self, cod_pais: str) -> None:
         if cod_pais == self._cod_pais:
@@ -379,6 +423,38 @@ class CountryView(ctk.CTkFrame):
 
         self._actualizar_header(cod_pais, resumen)
         self._poblar_grid(figuritas, cod_pais)
+        self._actualizar_botones_nav()
+
+    def _indice_pais_actual(self) -> int:
+        for idx, pais in enumerate(self._paises):
+            if pais.cod_pais == self._cod_pais:
+                return idx
+        return -1
+
+    def _navegar_pais(self, direccion: int) -> None:
+        idx = self._indice_pais_actual()
+        nuevo_idx = idx + direccion
+
+        if idx < 0 or nuevo_idx < 0 or nuevo_idx >= len(self._paises):
+            return
+
+        self.set_country(self._paises[nuevo_idx].cod_pais)
+        try:
+            self.scroll._parent_canvas.yview_moveto(0)
+        except Exception:
+            pass
+
+    def _actualizar_botones_nav(self) -> None:
+        idx = self._indice_pais_actual()
+        hay_anterior = idx > 0
+        hay_siguiente = 0 <= idx < len(self._paises) - 1
+
+        self.btn_pais_anterior.configure(
+            state="normal" if hay_anterior else "disabled"
+        )
+        self.btn_pais_siguiente.configure(
+            state="normal" if hay_siguiente else "disabled"
+        )
 
     def _actualizar_header(self, cod_pais: str, resumen) -> None:
         from views.dashboard_view import _flag_emoji 
