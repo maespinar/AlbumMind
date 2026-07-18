@@ -12,6 +12,7 @@ from models.collection_manager import (
     obtener_repetidas,
 )
 from models.exporter import exportar_faltantes_docx, exportar_repetidas_docx
+from views.country_view import _MouseWheelComboBox
 
 if TYPE_CHECKING:
     from views.main_window import MainWindow
@@ -127,7 +128,7 @@ class ExportView(ctk.CTkFrame):
             f"{p.cod_pais} — {p.nombre}" for p in paises
         ]
 
-        self.combo_pais = ctk.CTkComboBox(
+        self.combo_pais = _MouseWheelComboBox(
             bar,
             values=opciones,
             width=260,
